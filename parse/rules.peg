@@ -6,17 +6,18 @@ package parser
 
 // File
 
-File <- _ rs:Rule* _ EOF {
+File <- rs:( _ Rule _ )* EOF {
     f := &ast.File{}
-    for _, r := range rs.([]interface{}) {
-        f.Rules = append(f.Rules, r.(*ast.Rule))
+    for _, i := range rs.([]interface{}) {
+        r := i.([]interface{})[1].(*ast.Rule)
+        f.Rules = append(f.Rules, r)
     }
     return f, nil
 }
 
 // Rule
 
-Rule <- m:Value __ "=>" __ r:Value EOL {
+Rule <- m:Value __ "=>" __ r:Value {
     return &ast.Rule{
         Match: m.(ast.Value),
         Result: r.(ast.Value),
@@ -25,50 +26,92 @@ Rule <- m:Value __ "=>" __ r:Value EOL {
 
 Value <- SExpr / Variable
 
-SExpr <- '(' _ op:Op auxint:( __ AuxInt )? as:( __ Value )* _ ')' {
+SExpr <- '(' _ op:Op operands:( __ Operand )* _ ')' {
     s := &ast.SExpr{
         Op: op.(ast.Op),
     }
 
-    // AuxInt
-    if auxint != nil {
-        s.AuxInt = auxint.([]interface{})[1].(string)
-    }
-
-    // Args
-    for _, a := range as.([]interface{}) {
-        s.Args = append(s.Args, a.([]interface{})[1].(ast.Value))
+    for _, is := range operands.([]interface{}) {
+        switch operand := is.([]interface{})[1].(type) {
+        case ast.Type:
+            s.Type = operand
+        case ast.AuxInt:
+            s.AuxInt = operand
+        case ast.Aux:
+            s.Aux = operand
+        case ast.Value:
+            s.Args = append(s.Args, operand)
+        default:
+            return nil, errors.New("unknown operand")
+        }
     }
 
     return s, nil
 }
 
-Op <- [a-zA-Z] [a-zA-Z0-9]* {
-    return ast.Op(c.text), nil
+// Op
+
+Op <- parts:( OpPart / OpAlt )+ {
+    var op ast.Op
+    for _, i := range parts.([]interface{}) {
+        switch part := i.(type) {
+        case string:
+            op = append(op, []string{part})
+        case []string:
+            op = append(op, part)
+        default:
+            return nil, errors.New("bad opcode part")
+        }
+    }
+    return op, nil
 }
 
-AuxInt <- '[' i:[^\]]+ ']' {
+OpPart <- [a-zA-Z0-9]+ {
+    return string(c.text), nil
+}
+
+OpAlt <- '(' first:OpPart rest:( '|' OpPart )+ ')' {
+    alts := []string{first.(string)}
+    for _, is := range rest.([]interface{}) {
+        alt := is.([]interface{})[1].(string)
+        alts = append(alts, alt)
+    }
+    return alts, nil
+}
+
+// Operand
+
+Operand <- Type / AuxInt / Aux / Value
+
+Type <- '<' [^>]+ '>' {
     n := len(c.text)
-    return string(c.text[1:n-1]), nil
+    return ast.Type(c.text[1:n-1]), nil
 }
 
-// Variable
+AuxInt <- '[' [^\]]+ ']' {
+    n := len(c.text)
+    return ast.AuxInt(c.text[1:n-1]), nil
+}
 
-Variable <- [a-z] [a-z0-9]* {
+Aux <- '{' [^}]+ '}' {
+    n := len(c.text)
+    return ast.Aux(c.text[1:n-1]), nil
+}
+
+Variable <- [_a-z] [_a-z0-9]* {
     return ast.Variable(c.text), nil
 }
-
 
 // Skip
 
 __ <- Skip+
 _ <- Skip*
 
-Skip <- (Whitespace / EOL / Comment)
+Skip <- (Comment / Whitespace / EOL)
 
 // Comments
 
-Comment <- "//" .+ EOL
+Comment <- "//" [^\n]* EOL
 
 // Character classes
 

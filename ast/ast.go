@@ -19,11 +19,19 @@ type Value interface{}
 
 type SExpr struct {
 	Op     Op
-	AuxInt string
+	Type   Type
+	AuxInt AuxInt
+	Aux    Aux
 	Args   []Value
 }
 
-type Op string
+type Op [][]string
+
+type Type string
+
+type AuxInt string
+
+type Aux string
 
 type Variable string
 
