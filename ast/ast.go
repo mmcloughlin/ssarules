@@ -11,18 +11,20 @@ type File struct {
 }
 
 type Rule struct {
-	Match  Value
-	Result Value
+	Match      Value
+	Conditions []string
+	Result     Value
 }
 
 type Value interface{}
 
 type SExpr struct {
-	Op     Op
-	Type   Type
-	AuxInt AuxInt
-	Aux    Aux
-	Args   []Value
+	Binding Variable
+	Op      Op
+	Type    Type
+	AuxInt  AuxInt
+	Aux     Aux
+	Args    []Value
 }
 
 type Op [][]string

@@ -17,18 +17,29 @@ File <- rs:( _ Rule _ )* EOF {
 
 // Rule
 
-Rule <- m:Value __ "=>" __ r:Value {
-    return &ast.Rule{
+Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ r:Value {
+    rule := &ast.Rule{
         Match: m.(ast.Value),
         Result: r.(ast.Value),
-    }, nil
+    }
+
+    for _, i := range conds.([]interface{}) {
+        cond := i.([]interface{})[3].(string)
+        rule.Conditions = append(rule.Conditions, cond)
+    }
+
+    return rule, nil
 }
 
 Value <- SExpr / Variable
 
-SExpr <- '(' _ op:Op operands:( __ Operand )* _ ')' {
+SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* _ ')' {
     s := &ast.SExpr{
         Op: op.(ast.Op),
+    }
+
+    if binding != nil {
+        s.Binding = binding.([]interface{})[0].(ast.Variable)
     }
 
     for _, is := range operands.([]interface{}) {
@@ -100,6 +111,12 @@ Aux <- '{' [^}]+ '}' {
 
 Variable <- [_a-z] [_a-z0-9]* {
     return ast.Variable(c.text), nil
+}
+
+// Condition
+
+Condition <- (. !"&&" !"=>")+ {
+    return string(c.text), nil
 }
 
 // Skip
