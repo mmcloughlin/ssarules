@@ -1,0 +1,77 @@
+{
+
+package parser
+
+}
+
+// File
+
+File <- _ rs:Rule* _ EOF {
+    f := &ast.File{}
+    for _, r := range rs.([]interface{}) {
+        f.Rules = append(f.Rules, r.(*ast.Rule))
+    }
+    return f, nil
+}
+
+// Rule
+
+Rule <- m:Value __ "=>" __ r:Value EOL {
+    return &ast.Rule{
+        Match: m.(ast.Value),
+        Result: r.(ast.Value),
+    }, nil
+}
+
+Value <- SExpr / Variable
+
+SExpr <- '(' _ op:Op auxint:( __ AuxInt )? as:( __ Value )* _ ')' {
+    s := &ast.SExpr{
+        Op: op.(ast.Op),
+    }
+
+    // AuxInt
+    if auxint != nil {
+        s.AuxInt = auxint.([]interface{})[1].(string)
+    }
+
+    // Args
+    for _, a := range as.([]interface{}) {
+        s.Args = append(s.Args, a.([]interface{})[1].(ast.Value))
+    }
+
+    return s, nil
+}
+
+Op <- [a-zA-Z] [a-zA-Z0-9]* {
+    return ast.Op(c.text), nil
+}
+
+AuxInt <- '[' i:[^\]]+ ']' {
+    n := len(c.text)
+    return string(c.text[1:n-1]), nil
+}
+
+// Variable
+
+Variable <- [a-z] [a-z0-9]* {
+    return ast.Variable(c.text), nil
+}
+
+
+// Skip
+
+__ <- Skip+
+_ <- Skip*
+
+Skip <- (Whitespace / EOL / Comment)
+
+// Comments
+
+Comment <- "//" .+ EOL
+
+// Character classes
+
+Whitespace <- [ \t\r]
+EOL <- '\n'
+EOF <- !.
