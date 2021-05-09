@@ -351,6 +351,34 @@ func TestCases(t *testing.T) {
 				Result: ast.Variable("z"),
 			},
 		},
+
+		{
+			// Reference: https://github.com/golang/go/blob/5203357ebacf9f41ca5e194d953c164049172e96/src/cmd/compile/internal/ssa/gen/386.rules#L773
+			//
+			//	(NE (FlagLT_ULT) yes no) => (First yes no)
+			//
+			Name:   "opcode_with_underscore",
+			Source: "(NE (FlagLT_ULT) yes no) => (First yes no)",
+			Expect: &ast.Rule{
+				Match: &ast.SExpr{
+					Op: [][]string{{"NE"}},
+					Args: []ast.Value{
+						&ast.SExpr{
+							Op: [][]string{{"FlagLT_ULT"}},
+						},
+						ast.Variable("yes"),
+						ast.Variable("no"),
+					},
+				},
+				Result: &ast.SExpr{
+					Op: [][]string{{"First"}},
+					Args: []ast.Value{
+						ast.Variable("yes"),
+						ast.Variable("no"),
+					},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {
