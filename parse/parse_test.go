@@ -328,6 +328,29 @@ func TestCases(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			// Reference: https://github.com/golang/go/blob/c14ecaca8182314efd2ef7280feffc2242644887/src/cmd/compile/internal/ssa/gen/generic.rules#L1979
+			//
+			//	(SelectN [2] (MakeResult x y z ___)) => z
+			//
+			Name:   "trailing",
+			Source: "(SelectN [2] (MakeResult x y z ___)) => z",
+			Expect: &ast.Rule{
+				Match: &ast.SExpr{
+					Op:     [][]string{{"SelectN"}},
+					AuxInt: "2",
+					Args: []ast.Value{
+						&ast.SExpr{
+							Op:       [][]string{{"MakeResult"}},
+							Args:     []ast.Value{ast.Variable("x"), ast.Variable("y"), ast.Variable("z")},
+							Trailing: true,
+						},
+					},
+				},
+				Result: ast.Variable("z"),
+			},
+		},
 	}
 
 	for _, c := range cases {

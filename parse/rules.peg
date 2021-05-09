@@ -37,7 +37,7 @@ Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ block:Block? _ r:Value {
 
 Value <- SExpr / Variable
 
-SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis:( __ "...")? _ ')' {
+SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis:( __ "...")? trailing:( __ "___" )? _ ')' {
     s := &ast.SExpr{
         Op: op.(ast.Op),
     }
@@ -63,6 +63,10 @@ SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis
 
     if ellipsis != nil {
         s.Ellipsis = true
+    }
+
+    if trailing != nil {
+        s.Trailing = true
     }
 
     return s, nil
@@ -117,7 +121,7 @@ Aux <- '{' [^}]+ '}' {
     return ast.Aux(c.text[1:n-1]), nil
 }
 
-Variable <- [_a-z] [_a-z0-9]* {
+Variable <- (("_" !"_") / ([a-z] [_a-z0-9]*)) {
     return ast.Variable(c.text), nil
 }
 

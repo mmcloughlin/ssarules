@@ -28,6 +28,7 @@ type SExpr struct {
 	Aux      Aux
 	Args     []Value
 	Ellipsis bool
+	Trailing bool
 }
 
 type Op [][]string
