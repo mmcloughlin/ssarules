@@ -69,16 +69,16 @@ func TestCases(t *testing.T) {
 			Source: "(Slicemask (Const32 [0]))          => (Const32 [0])\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"Slicemask"}},
+					Op: ast.Opcode("Slicemask"),
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op:     [][]string{{"Const32"}},
+							Op:     ast.Opcode("Const32"),
 							AuxInt: "0",
 						},
 					},
 				},
 				Result: &ast.SExpr{
-					Op:     [][]string{{"Const32"}},
+					Op:     ast.Opcode("Const32"),
 					AuxInt: "0",
 				},
 			},
@@ -93,18 +93,18 @@ func TestCases(t *testing.T) {
 			Source: "(AddPtr <t> x (Const64 [c])) => (OffPtr <t> x [c])\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op:   [][]string{{"AddPtr"}},
+					Op:   ast.Opcode("AddPtr"),
 					Type: "t",
 					Args: []ast.Value{
 						ast.Variable("x"),
 						&ast.SExpr{
-							Op:     [][]string{{"Const64"}},
+							Op:     ast.Opcode("Const64"),
 							AuxInt: "c",
 						},
 					},
 				},
 				Result: &ast.SExpr{
-					Op:     [][]string{{"OffPtr"}},
+					Op:     ast.Opcode("OffPtr"),
 					Type:   "t",
 					AuxInt: "c",
 					Args: []ast.Value{
@@ -123,22 +123,22 @@ func TestCases(t *testing.T) {
 			Source: "(EqPtr  (Addr {x} _) (Addr {y} _)) => (ConstBool [x == y])\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"EqPtr"}},
+					Op: ast.Opcode("EqPtr"),
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op:   [][]string{{"Addr"}},
+							Op:   ast.Opcode("Addr"),
 							Aux:  "x",
-							Args: []ast.Value{ast.Variable("_")},
+							Args: []ast.Value{ast.Placeholder},
 						},
 						&ast.SExpr{
-							Op:   [][]string{{"Addr"}},
+							Op:   ast.Opcode("Addr"),
 							Aux:  "y",
-							Args: []ast.Value{ast.Variable("_")},
+							Args: []ast.Value{ast.Placeholder},
 						},
 					},
 				},
 				Result: &ast.SExpr{
-					Op:     [][]string{{"ConstBool"}},
+					Op:     ast.Opcode("ConstBool"),
 					AuxInt: "x == y",
 				},
 			},
@@ -153,18 +153,18 @@ func TestCases(t *testing.T) {
 			Source: "(Mul(32|64)F x (Const(32|64)F [1])) => x\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{
-						{"Mul"},
-						{"32", "64"},
-						{"F"},
+					Op: ast.OpcodeParts{
+						ast.Opcode("Mul"),
+						ast.OpcodeAlt{"32", "64"},
+						ast.Opcode("F"),
 					},
 					Args: []ast.Value{
 						ast.Variable("x"),
 						&ast.SExpr{
-							Op: [][]string{
-								{"Const"},
-								{"32", "64"},
-								{"F"},
+							Op: ast.OpcodeParts{
+								ast.Opcode("Const"),
+								ast.OpcodeAlt{"32", "64"},
+								ast.Opcode("F"),
 							},
 							AuxInt: "1",
 						},
@@ -183,13 +183,10 @@ func TestCases(t *testing.T) {
 			Source: "(Not (Less(64|32|16|8) x y)) => (Leq(64|32|16|8) y x)\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"Not"}},
+					Op: ast.Opcode("Not"),
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op: [][]string{
-								{"Less"},
-								{"64", "32", "16", "8"},
-							},
+							Op: ast.OpcodeParts{ast.Opcode("Less"), ast.OpcodeAlt{"64", "32", "16", "8"}},
 							Args: []ast.Value{
 								ast.Variable("x"),
 								ast.Variable("y"),
@@ -198,10 +195,7 @@ func TestCases(t *testing.T) {
 					},
 				},
 				Result: &ast.SExpr{
-					Op: [][]string{
-						{"Leq"},
-						{"64", "32", "16", "8"},
-					},
+					Op: ast.OpcodeParts{ast.Opcode("Leq"), ast.OpcodeAlt{"64", "32", "16", "8"}},
 					Args: []ast.Value{
 						ast.Variable("y"),
 						ast.Variable("x"),
@@ -219,17 +213,17 @@ func TestCases(t *testing.T) {
 			Source: "(Neg32F (Const32F [c])) && c != 0 => (Const32F [-c])\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"Neg32F"}},
+					Op: ast.Opcode("Neg32F"),
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op:     [][]string{{"Const32F"}},
+							Op:     ast.Opcode("Const32F"),
 							AuxInt: "c",
 						},
 					},
 				},
 				Conditions: []string{"c != 0"},
 				Result: &ast.SExpr{
-					Op:     [][]string{{"Const32F"}},
+					Op:     ast.Opcode("Const32F"),
 					AuxInt: "-c",
 				},
 			},
@@ -244,13 +238,13 @@ func TestCases(t *testing.T) {
 			Source: "(Trunc64to8  (And64 (Const64 [y]) x)) && y&0xFF == 0xFF => (Trunc64to8 x)\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"Trunc64to8"}},
+					Op: ast.Opcode("Trunc64to8"),
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op: [][]string{{"And64"}},
+							Op: ast.Opcode("And64"),
 							Args: []ast.Value{
 								&ast.SExpr{
-									Op:     [][]string{{"Const64"}},
+									Op:     ast.Opcode("Const64"),
 									AuxInt: "y",
 								},
 								ast.Variable("x"),
@@ -260,7 +254,7 @@ func TestCases(t *testing.T) {
 				},
 				Conditions: []string{"y&0xFF == 0xFF"},
 				Result: &ast.SExpr{
-					Op: [][]string{{"Trunc64to8"}},
+					Op: ast.Opcode("Trunc64to8"),
 					Args: []ast.Value{
 						ast.Variable("x"),
 					},
@@ -277,18 +271,18 @@ func TestCases(t *testing.T) {
 			Source: "(ZeroExt8to64  (Trunc64to8  x:(Rsh64Ux64 _ (Const64 [s])))) && s >= 56 => x\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"ZeroExt8to64"}},
+					Op: ast.Opcode("ZeroExt8to64"),
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op: [][]string{{"Trunc64to8"}},
+							Op: ast.Opcode("Trunc64to8"),
 							Args: []ast.Value{
 								&ast.SExpr{
 									Binding: "x",
-									Op:      [][]string{{"Rsh64Ux64"}},
+									Op:      ast.Opcode("Rsh64Ux64"),
 									Args: []ast.Value{
 										ast.Variable("_"),
 										&ast.SExpr{
-											Op:     [][]string{{"Const64"}},
+											Op:     ast.Opcode("Const64"),
 											AuxInt: "s",
 										},
 									},
@@ -311,11 +305,11 @@ func TestCases(t *testing.T) {
 			Source: "(MOVBLSX x:(MOVBload [off] {sym} ptr mem)) && x.Uses == 1 && clobber(x) => @x.Block (MOVBLSXload <v.Type> [off] {sym} ptr mem)\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"MOVBLSX"}},
+					Op: ast.Opcode("MOVBLSX"),
 					Args: []ast.Value{
 						&ast.SExpr{
 							Binding: "x",
-							Op:      [][]string{{"MOVBload"}},
+							Op:      ast.Opcode("MOVBload"),
 							AuxInt:  "off",
 							Aux:     "sym",
 							Args: []ast.Value{
@@ -328,7 +322,7 @@ func TestCases(t *testing.T) {
 				Conditions: []string{"x.Uses == 1", "clobber(x)"},
 				Block:      "x.Block",
 				Result: &ast.SExpr{
-					Op:     [][]string{{"MOVBLSXload"}},
+					Op:     ast.Opcode("MOVBLSXload"),
 					Type:   "v.Type",
 					AuxInt: "off",
 					Aux:    "sym",
@@ -349,11 +343,11 @@ func TestCases(t *testing.T) {
 			Source: "(AddPtr ...) => (ADDQ ...)",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op:       [][]string{{"AddPtr"}},
+					Op:       ast.Opcode("AddPtr"),
 					Ellipsis: true,
 				},
 				Result: &ast.SExpr{
-					Op:       [][]string{{"ADDQ"}},
+					Op:       ast.Opcode("ADDQ"),
 					Ellipsis: true,
 				},
 			},
@@ -368,11 +362,11 @@ func TestCases(t *testing.T) {
 			Source: "(SelectN [2] (MakeResult x y z ___)) => z",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op:     [][]string{{"SelectN"}},
+					Op:     ast.Opcode("SelectN"),
 					AuxInt: "2",
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op:       [][]string{{"MakeResult"}},
+							Op:       ast.Opcode("MakeResult"),
 							Args:     []ast.Value{ast.Variable("x"), ast.Variable("y"), ast.Variable("z")},
 							Trailing: true,
 						},
@@ -391,17 +385,17 @@ func TestCases(t *testing.T) {
 			Source: "(NE (FlagLT_ULT) yes no) => (First yes no)",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"NE"}},
+					Op: ast.Opcode("NE"),
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op: [][]string{{"FlagLT_ULT"}},
+							Op: ast.Opcode("FlagLT_ULT"),
 						},
 						ast.Variable("yes"),
 						ast.Variable("no"),
 					},
 				},
 				Result: &ast.SExpr{
-					Op: [][]string{{"First"}},
+					Op: ast.Opcode("First"),
 					Args: []ast.Value{
 						ast.Variable("yes"),
 						ast.Variable("no"),
@@ -421,29 +415,29 @@ func TestCases(t *testing.T) {
 				nil => devirtLECall(v, devirtLESym(v, auxCall, itab, off))`,
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op:     [][]string{{"InterLECall"}},
+					Op:     ast.Opcode("InterLECall"),
 					AuxInt: "argsize",
 					Aux:    "auxCall",
 					Args: []ast.Value{
 						&ast.SExpr{
-							Op: [][]string{{"Load"}},
+							Op: ast.Opcode("Load"),
 							Args: []ast.Value{
 								&ast.SExpr{
-									Op:     [][]string{{"OffPtr"}},
+									Op:     ast.Opcode("OffPtr"),
 									AuxInt: "off",
 									Args: []ast.Value{
 										&ast.SExpr{
-											Op: [][]string{{"ITab"}},
+											Op: ast.Opcode("ITab"),
 											Args: []ast.Value{
 												&ast.SExpr{
-													Op: [][]string{{"IMake"}},
+													Op: ast.Opcode("IMake"),
 													Args: []ast.Value{
 														&ast.SExpr{
-															Op:  [][]string{{"Addr"}},
+															Op:  ast.Opcode("Addr"),
 															Aux: "itab",
 															Args: []ast.Value{
 																&ast.SExpr{
-																	Op: [][]string{{"SB"}},
+																	Op: ast.Opcode("SB"),
 																},
 															},
 														},
@@ -474,7 +468,7 @@ func TestCases(t *testing.T) {
 			Source: "(CondSelect x y boolval) && flagArg(boolval) != nil => (CSEL [boolval.Op] x y flagArg(boolval))\n",
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
-					Op: [][]string{{"CondSelect"}},
+					Op: ast.Opcode("CondSelect"),
 					Args: []ast.Value{
 						ast.Variable("x"),
 						ast.Variable("y"),
@@ -483,7 +477,7 @@ func TestCases(t *testing.T) {
 				},
 				Conditions: []string{"flagArg(boolval) != nil"},
 				Result: &ast.SExpr{
-					Op:     [][]string{{"CSEL"}},
+					Op:     ast.Opcode("CSEL"),
 					AuxInt: "boolval.Op",
 					Args: []ast.Value{
 						ast.Variable("x"),

@@ -31,7 +31,15 @@ type SExpr struct {
 	Trailing bool
 }
 
-type Op [][]string
+type Op interface{}
+
+type Opcode string
+
+type OpPart interface{}
+
+type OpcodeParts []OpPart
+
+type OpcodeAlt []Opcode
 
 type Type string
 

@@ -75,28 +75,30 @@ SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis
 // Op
 
 Op <- parts:( OpPart / OpAlt )+ {
-    var op ast.Op
+    var op ast.OpcodeParts
     for _, i := range parts.([]interface{}) {
-        switch part := i.(type) {
-        case string:
-            op = append(op, []string{part})
-        case []string:
-            op = append(op, part)
-        default:
-            return nil, errors.New("bad opcode part")
-        }
+        op = append(op, i.(ast.OpPart))
     }
+
+    if len(op) != 1 {
+        return op, nil
+    }
+
+    if _, ok := op[0].(ast.Opcode); ok {
+        return op[0], nil
+    }
+
     return op, nil
 }
 
 OpPart <- [_a-zA-Z0-9]+ {
-    return string(c.text), nil
+    return ast.Opcode(c.text), nil
 }
 
 OpAlt <- '(' first:OpPart rest:( '|' OpPart )+ ')' {
-    alts := []string{first.(string)}
+    alts := ast.OpcodeAlt{first.(ast.Opcode)}
     for _, is := range rest.([]interface{}) {
-        alt := is.([]interface{})[1].(string)
+        alt := is.([]interface{})[1].(ast.Opcode)
         alts = append(alts, alt)
     }
     return alts, nil
