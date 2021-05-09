@@ -379,6 +379,90 @@ func TestCases(t *testing.T) {
 				},
 			},
 		},
+
+		{
+			// Reference: https://github.com/golang/go/blob/02ce4118219dc51a14680a0c5fa24cf6e73deeed/src/cmd/compile/internal/ssa/gen/generic.rules#L2098-L2099
+			//
+			//	(InterLECall [argsize] {auxCall} (Load (OffPtr [off] (ITab (IMake (Addr {itab} (SB)) _))) _) ___) && devirtLESym(v, auxCall, itab, off) !=
+			//	    nil => devirtLECall(v, devirtLESym(v, auxCall, itab, off))
+			//
+			Name: "expr_result",
+			Source: `(InterLECall [argsize] {auxCall} (Load (OffPtr [off] (ITab (IMake (Addr {itab} (SB)) _))) _) ___) && devirtLESym(v, auxCall, itab, off) !=
+				nil => devirtLECall(v, devirtLESym(v, auxCall, itab, off))`,
+			Expect: &ast.Rule{
+				Match: &ast.SExpr{
+					Op:     [][]string{{"InterLECall"}},
+					AuxInt: "argsize",
+					Aux:    "auxCall",
+					Args: []ast.Value{
+						&ast.SExpr{
+							Op: [][]string{{"Load"}},
+							Args: []ast.Value{
+								&ast.SExpr{
+									Op:     [][]string{{"OffPtr"}},
+									AuxInt: "off",
+									Args: []ast.Value{
+										&ast.SExpr{
+											Op: [][]string{{"ITab"}},
+											Args: []ast.Value{
+												&ast.SExpr{
+													Op: [][]string{{"IMake"}},
+													Args: []ast.Value{
+														&ast.SExpr{
+															Op:  [][]string{{"Addr"}},
+															Aux: "itab",
+															Args: []ast.Value{
+																&ast.SExpr{
+																	Op: [][]string{{"SB"}},
+																},
+															},
+														},
+														ast.Placeholder,
+													},
+												},
+											},
+										},
+									},
+								},
+								ast.Placeholder,
+							},
+						},
+					},
+					Trailing: true,
+				},
+				Conditions: []string{"devirtLESym(v, auxCall, itab, off) !=\n\t\t\t\tnil"},
+				Result:     ast.Expr("devirtLECall(v, devirtLESym(v, auxCall, itab, off))"),
+			},
+		},
+
+		{
+			// Reference: https://github.com/golang/go/blob/5203357ebacf9f41ca5e194d953c164049172e96/src/cmd/compile/internal/ssa/gen/ARM64.rules#L320
+			//
+			//	(CondSelect x y boolval) && flagArg(boolval) != nil => (CSEL [boolval.Op] x y flagArg(boolval))
+			//
+			Name:   "expr_arg",
+			Source: "(CondSelect x y boolval) && flagArg(boolval) != nil => (CSEL [boolval.Op] x y flagArg(boolval))\n",
+			Expect: &ast.Rule{
+				Match: &ast.SExpr{
+					Op: [][]string{{"CondSelect"}},
+					Args: []ast.Value{
+						ast.Variable("x"),
+						ast.Variable("y"),
+						ast.Variable("boolval"),
+					},
+				},
+				Conditions: []string{"flagArg(boolval) != nil"},
+				Result: &ast.SExpr{
+					Op:     [][]string{{"CSEL"}},
+					AuxInt: "boolval.Op",
+					Args: []ast.Value{
+						ast.Variable("x"),
+						ast.Variable("y"),
+						ast.Expr("flagArg(boolval)"),
+					},
+				},
+			},
+		},
 	}
 
 	for _, c := range cases {

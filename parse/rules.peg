@@ -35,7 +35,7 @@ Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ block:Block? _ r:Value {
     return rule, nil
 }
 
-Value <- SExpr / Variable
+Value <- SExpr / Expr
 
 SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis:( __ "...")? trailing:( __ "___" )? _ ')' {
     s := &ast.SExpr{
@@ -121,9 +121,23 @@ Aux <- '{' [^}]+ '}' {
     return ast.Aux(c.text[1:n-1]), nil
 }
 
-Variable <- (("_" !"_") / ([a-z] [_a-z0-9]*)) {
+// Expr
+
+Expr <- Call / Variable / Placeholder
+
+Call <- Ident '(' _ Expr ( _ ',' _ Expr _ )* _ ')' {
+    return ast.Expr(c.text), nil
+}
+
+Variable <- Ident {
     return ast.Variable(c.text), nil
 }
+
+Placeholder <- "_" !"_" {
+    return ast.Placeholder, nil
+}
+
+Ident <- [a-z] [_a-zA-Z0-9]*
 
 // Condition
 

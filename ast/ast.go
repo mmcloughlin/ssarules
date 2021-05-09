@@ -39,7 +39,11 @@ type AuxInt string
 
 type Aux string
 
+type Expr string
+
 type Variable string
+
+var Placeholder = Variable("_")
 
 // Print an AST node to standard out.
 func Print(n interface{}) error {
