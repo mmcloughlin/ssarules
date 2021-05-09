@@ -1,6 +1,7 @@
 package ast
 
 import (
+	"bytes"
 	goast "go/ast"
 	"io"
 	"os"
@@ -42,6 +43,15 @@ type Variable string
 // Print an AST node to standard out.
 func Print(n interface{}) error {
 	return Fprint(os.Stdout, n)
+}
+
+// Dump produces a string representation of
+func Dump(n interface{}) (string, error) {
+	buf := bytes.NewBuffer(nil)
+	if err := Fprint(buf, n); err != nil {
+		return "", err
+	}
+	return buf.String(), nil
 }
 
 // Fprint writes the AST node n to w.
