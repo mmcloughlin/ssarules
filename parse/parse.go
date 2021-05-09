@@ -9,7 +9,7 @@ import (
 	"github.com/mmcloughlin/ssarules/parse/internal/parser"
 )
 
-//go:generate pigeon -o internal/parser/zparser.go rules.peg
+//go:generate pigeon -optimize-grammar -optimize-parser -o internal/parser/zparser.go rules.peg
 
 // File parses filename.
 func File(filename string) (*ast.File, error) {
