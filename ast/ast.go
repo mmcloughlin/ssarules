@@ -31,13 +31,23 @@ type SExpr struct {
 	Trailing bool
 }
 
-type Op interface{}
+type Op interface {
+	op() // sealed
+}
+
+func (Opcode) op()      {}
+func (OpcodeParts) op() {}
 
 type Opcode string
 
-type OpPart interface{}
-
 type OpcodeParts []OpPart
+
+type OpPart interface {
+	oppart() // sealed
+}
+
+func (Opcode) oppart()    {}
+func (OpcodeAlt) oppart() {}
 
 type OpcodeAlt []Opcode
 
