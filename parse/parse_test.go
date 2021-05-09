@@ -467,8 +467,6 @@ func TestCases(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			t.Logf("source =\n%s", c.Source)
-
 			got, err := parse.String(c.Source)
 			if err != nil {
 				t.Fatal(err)
@@ -481,6 +479,8 @@ func TestCases(t *testing.T) {
 			expect := &ast.File{Rules: []*ast.Rule{c.Expect}}
 
 			if diff := cmp.Diff(expect, got); diff != "" {
+				t.Logf("source =\n%s", c.Source)
+
 				e, err := ast.Dump(expect)
 				if err != nil {
 					t.Fatal(err)
