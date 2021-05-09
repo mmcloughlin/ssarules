@@ -20,12 +20,13 @@ type Rule struct {
 type Value interface{}
 
 type SExpr struct {
-	Binding Variable
-	Op      Op
-	Type    Type
-	AuxInt  AuxInt
-	Aux     Aux
-	Args    []Value
+	Binding  Variable
+	Op       Op
+	Type     Type
+	AuxInt   AuxInt
+	Aux      Aux
+	Args     []Value
+	Ellipsis bool
 }
 
 type Op [][]string

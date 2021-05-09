@@ -37,7 +37,7 @@ Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ block:Block? _ r:Value {
 
 Value <- SExpr / Variable
 
-SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* _ ')' {
+SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis:( __ "...")? _ ')' {
     s := &ast.SExpr{
         Op: op.(ast.Op),
     }
@@ -61,6 +61,10 @@ SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* _ ')' {
         }
     }
 
+    if ellipsis != nil {
+        s.Ellipsis = true
+    }
+
     return s, nil
 }
 
@@ -81,7 +85,7 @@ Op <- parts:( OpPart / OpAlt )+ {
     return op, nil
 }
 
-OpPart <- [a-zA-Z0-9]+ {
+OpPart <- [_a-zA-Z0-9]+ {
     return string(c.text), nil
 }
 
