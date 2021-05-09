@@ -1,11 +1,27 @@
 package parse_test
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/mmcloughlin/ssarules/ast"
 	"github.com/mmcloughlin/ssarules/parse"
 )
+
+func TestFiles(t *testing.T) {
+	filenames, err := filepath.Glob("testdata/*.rules")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, filename := range filenames {
+		t.Run(filepath.Base(filename), func(t *testing.T) {
+			_, err := parse.File(filename)
+			if err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
 
 func TestAdhoc(t *testing.T) {
 	src := `
@@ -18,6 +34,7 @@ func TestAdhoc(t *testing.T) {
 (Neg32F (Const32F [c])) && c != 0 => (Const32F [-c])
 (Trunc64to8  (And64 (Const64 [y]) x)) && y&0xFF == 0xFF => (Trunc64to8 x)
 (ZeroExt8to64  (Trunc64to8  x:(Rsh64Ux64 _ (Const64 [s])))) && s >= 56 => x
+(MOVBreg <t> x:(MOVBUload [off] {sym} ptr mem)) && x.Uses == 1 && clobber(x) => @x.Block (MOVBload  <t> [off] {sym} ptr mem)
 `
 
 	f, err := parse.String(src)

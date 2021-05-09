@@ -11,6 +11,11 @@ import (
 
 //go:generate pigeon -o internal/parser/zparser.go rules.peg
 
+// File parses filename.
+func File(filename string) (*ast.File, error) {
+	return cast(parser.ParseFile(filename))
+}
+
 // Reader parses the data from r using filename as information in
 // error messages.
 func Reader(filename string, r io.Reader) (*ast.File, error) {
