@@ -13,6 +13,7 @@ type File struct {
 type Rule struct {
 	Match      Value
 	Conditions []string
+	Block      string
 	Result     Value
 }
 

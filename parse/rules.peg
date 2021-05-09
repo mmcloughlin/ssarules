@@ -17,7 +17,7 @@ File <- rs:( _ Rule _ )* EOF {
 
 // Rule
 
-Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ r:Value {
+Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ block:Block? _ r:Value {
     rule := &ast.Rule{
         Match: m.(ast.Value),
         Result: r.(ast.Value),
@@ -26,6 +26,10 @@ Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ r:Value {
     for _, i := range conds.([]interface{}) {
         cond := i.([]interface{})[3].(string)
         rule.Conditions = append(rule.Conditions, cond)
+    }
+
+    if block != nil {
+        rule.Block = block.(string)
     }
 
     return rule, nil
@@ -117,6 +121,12 @@ Variable <- [_a-z] [_a-z0-9]* {
 
 Condition <- (. !"&&" !"=>")+ {
     return string(c.text), nil
+}
+
+// Block
+
+Block <- '@' ( !Whitespace .)+ {
+    return string(c.text[1:]), nil
 }
 
 // Skip
