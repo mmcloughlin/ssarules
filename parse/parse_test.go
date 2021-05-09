@@ -1,7 +1,11 @@
 package parse_test
 
 import (
+	"bufio"
+	"bytes"
+	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -16,12 +20,38 @@ func TestFiles(t *testing.T) {
 	}
 	for _, filename := range filenames {
 		t.Run(filepath.Base(filename), func(t *testing.T) {
-			_, err := parse.File(filename)
+			// Parse file.
+			f, err := parse.File(filename)
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			// Check we parsed the right number of rules.
+			expect := CountRules(t, filename)
+			if len(f.Rules) != expect {
+				t.Fatalf("parsed %d rules; expect %d", len(f.Rules), expect)
+			}
 		})
 	}
+}
+
+func CountRules(t *testing.T, filename string) int {
+	b, err := ioutil.ReadFile(filename)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	n := 0
+	s := bufio.NewScanner(bytes.NewReader(b))
+	for s.Scan() {
+		line := s.Text()
+		if i := strings.Index(line, "//"); i >= 0 {
+			line = line[:i]
+		}
+		n += strings.Count(line, "=>")
+	}
+
+	return n
 }
 
 func TestCases(t *testing.T) {
