@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/mmcloughlin/ssarules/ast"
 	"github.com/mmcloughlin/ssarules/internal/test"
 	"github.com/mmcloughlin/ssarules/parse"

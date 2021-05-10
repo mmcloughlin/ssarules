@@ -1,0 +1,55 @@
+linters:
+  disable-all: true
+  enable:
+    - asciicheck
+    - deadcode
+    - depguard
+    - dupl
+    - errcheck
+    - errorlint
+    - exhaustive
+    - exportloopref
+    - forbidigo
+    - forcetypeassert
+    - gci
+    - gocognit
+    - gocritic
+    - gocyclo
+    - godot
+    - godox
+    - gofumpt
+    - goimports
+    - golint
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - importas
+    - ineffassign
+    - makezero
+    - misspell
+    - nakedret
+    - nestif
+    - nilerr
+    - predeclared
+    - revive
+    - staticcheck
+    - structcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - varcheck
+    - wastedassign
+    - whitespace
+
+linters-settings:
+  depguard:
+    list-type: whitelist
+    packages:
+      - github.com/mmcloughlin/ssarules
+      - github.com/google
+
+  gci:
+    local-prefixes: github.com/mmcloughlin/ssarules

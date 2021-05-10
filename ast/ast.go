@@ -74,7 +74,7 @@ func Print(n interface{}) error {
 	return Fprint(os.Stdout, n)
 }
 
-// Dump produces a string representation of
+// Dump produces a string representation of the AST node.
 func Dump(n interface{}) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	if err := Fprint(buf, n); err != nil {

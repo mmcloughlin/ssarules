@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+
 	"github.com/mmcloughlin/ssarules/ast"
 	"github.com/mmcloughlin/ssarules/internal/test"
 	"github.com/mmcloughlin/ssarules/parse"
@@ -30,6 +31,8 @@ func TestFiles(t *testing.T) {
 }
 
 func CountRules(t *testing.T, filename string) int {
+	t.Helper()
+
 	b, err := ioutil.ReadFile(filename)
 	if err != nil {
 		t.Fatal(err)
