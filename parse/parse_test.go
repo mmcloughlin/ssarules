@@ -14,7 +14,7 @@ import (
 )
 
 func TestFiles(t *testing.T) {
-	test.Glob(t, "testdata/*.rules", func(t *testing.T, filename string) {
+	test.Glob(t, "../internal/testdata/*.rules", func(t *testing.T, filename string) {
 		// Parse file.
 		f, err := parse.File(filename)
 		if err != nil {
