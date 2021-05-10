@@ -4,35 +4,29 @@ import (
 	"bufio"
 	"bytes"
 	"io/ioutil"
-	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mmcloughlin/ssarules/ast"
+	"github.com/mmcloughlin/ssarules/internal/test"
 	"github.com/mmcloughlin/ssarules/parse"
 )
 
 func TestFiles(t *testing.T) {
-	filenames, err := filepath.Glob("testdata/*.rules")
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, filename := range filenames {
-		t.Run(filepath.Base(filename), func(t *testing.T) {
-			// Parse file.
-			f, err := parse.File(filename)
-			if err != nil {
-				t.Fatal(err)
-			}
+	test.Glob(t, "testdata/*.rules", func(t *testing.T, filename string) {
+		// Parse file.
+		f, err := parse.File(filename)
+		if err != nil {
+			t.Fatal(err)
+		}
 
-			// Check we parsed the right number of rules.
-			expect := CountRules(t, filename)
-			if len(f.Rules) != expect {
-				t.Fatalf("parsed %d rules; expect %d", len(f.Rules), expect)
-			}
-		})
-	}
+		// Check we parsed the right number of rules.
+		expect := CountRules(t, filename)
+		if len(f.Rules) != expect {
+			t.Fatalf("parsed %d rules; expect %d", len(f.Rules), expect)
+		}
+	})
 }
 
 func CountRules(t *testing.T, filename string) int {
