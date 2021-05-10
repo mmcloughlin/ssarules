@@ -7,9 +7,15 @@ import (
 	"os"
 )
 
+type Node interface {
+	node() // sealed
+}
+
 type File struct {
 	Rules []*Rule
 }
+
+func (*File) node() {}
 
 type Rule struct {
 	Match      Value
@@ -18,13 +24,12 @@ type Rule struct {
 	Result     Value
 }
 
+func (*Rule) node() {}
+
 type Value interface {
+	Node
 	value() // sealed
 }
-
-func (*SExpr) value()   {}
-func (Expr) value()     {}
-func (Variable) value() {}
 
 type SExpr struct {
 	Binding  Variable
@@ -37,25 +42,35 @@ type SExpr struct {
 	Trailing bool
 }
 
+func (*SExpr) node()  {}
+func (*SExpr) value() {}
+
 type Op interface {
+	Node
 	op() // sealed
 }
 
-func (Opcode) op()      {}
-func (OpcodeParts) op() {}
-
 type Opcode string
+
+func (Opcode) node()   {}
+func (Opcode) oppart() {}
+
+func (Opcode) op() {}
 
 type OpcodeParts []OpPart
 
+func (OpcodeParts) node() {}
+func (OpcodeParts) op()   {}
+
 type OpPart interface {
+	Node
 	oppart() // sealed
 }
 
-func (Opcode) oppart()    {}
-func (OpcodeAlt) oppart() {}
-
 type OpcodeAlt []Opcode
+
+func (OpcodeAlt) node()   {}
+func (OpcodeAlt) oppart() {}
 
 type Type string
 
@@ -65,17 +80,23 @@ type Aux string
 
 type Expr string
 
+func (Expr) node()  {}
+func (Expr) value() {}
+
 type Variable string
+
+func (Variable) node()  {}
+func (Variable) value() {}
 
 var Placeholder = Variable("_")
 
 // Print an AST node to standard out.
-func Print(n interface{}) error {
+func Print(n Node) error {
 	return Fprint(os.Stdout, n)
 }
 
 // Dump produces a string representation of the AST node.
-func Dump(n interface{}) (string, error) {
+func Dump(n Node) (string, error) {
 	buf := bytes.NewBuffer(nil)
 	if err := Fprint(buf, n); err != nil {
 		return "", err
@@ -84,6 +105,6 @@ func Dump(n interface{}) (string, error) {
 }
 
 // Fprint writes the AST node n to w.
-func Fprint(w io.Writer, n interface{}) error {
+func Fprint(w io.Writer, n Node) error {
 	return goast.Fprint(w, nil, n, goast.NotNilFilter)
 }
