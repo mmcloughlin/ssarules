@@ -18,7 +18,13 @@ type Rule struct {
 	Result     Value
 }
 
-type Value interface{}
+type Value interface {
+	value() // sealed
+}
+
+func (*SExpr) value()   {}
+func (Expr) value()     {}
+func (Variable) value() {}
 
 type SExpr struct {
 	Binding  Variable
