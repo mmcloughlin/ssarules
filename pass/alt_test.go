@@ -6,10 +6,11 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/mmcloughlin/ssarules/ast"
+	"github.com/mmcloughlin/ssarules/internal/test"
 	"github.com/mmcloughlin/ssarules/parse"
 )
 
-func TestExpandAlternates(t *testing.T) {
+func TestExpandAlternatesCases(t *testing.T) {
 	cases := []struct {
 		Name   string
 		Input  []string
@@ -58,6 +59,87 @@ func TestExpandAlternates(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExpandAlternatesErrors(t *testing.T) {
+	cases := []struct {
+		Name           string
+		Input          []string
+		ErrorSubstring string
+	}{
+		{
+			Name: "mismatch_op_args",
+			Input: []string{
+				`(Mul(32|64)F x (Const(8|16|32|64)F [1])) => x`,
+			},
+			ErrorSubstring: "incompatible alternative counts 2 and 4",
+		},
+		{
+			Name: "mismatch_opparts",
+			Input: []string{
+				`(Mul(8|16|32|64)(L|Q) x) => x`,
+			},
+			ErrorSubstring: "incompatible alternative counts 4 and 2",
+		},
+		{
+			Name: "mismatch_match_result",
+			Input: []string{
+				`(Mul(64|32|16|8) ...) => (MUL(Q|L|L) ...)`,
+			},
+			ErrorSubstring: "incompatible alternative counts 4 and 3",
+		},
+		{
+			Name: "mismatch_value",
+			Input: []string{
+				`(Opcode (Add(1|2)To(A|B|C) x x) x) => x`,
+			},
+			ErrorSubstring: "incompatible alternative counts 2 and 3",
+		},
+		{
+			Name: "mismatch_result_only",
+			Input: []string{
+				`(Opcode x y) => (Mul(8|16|32|64)(L|Q) x y)`,
+			},
+			ErrorSubstring: "incompatible alternative counts 4 and 2",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			got := ParseLines(t, c.Input)
+			err := ExpandAlternates(got)
+			if err == nil {
+				t.Fatal("expected error")
+			}
+			if !strings.Contains(err.Error(), c.ErrorSubstring) {
+				t.Fatalf("expected error to contain %q; got %q", c.ErrorSubstring, err)
+			}
+		})
+	}
+}
+
+func TestExpandAlternatesFiles(t *testing.T) {
+	test.Glob(t, "../internal/testdata/*.rules", func(t *testing.T, filename string) {
+		// Parse file.
+		f, err := parse.File(filename)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		pre := len(f.Rules)
+
+		// Apply ExpandAlternates pass.
+		if err := ExpandAlternates(f); err != nil {
+			t.Fatal(err)
+		}
+		post := len(f.Rules)
+
+		t.Logf("expanded %d rules to %d", pre, post)
+
+		if post < pre {
+			t.Fatal("fewer rules after expansion")
+		}
+	})
 }
 
 func ParseLines(t *testing.T, lines []string) *ast.File {
