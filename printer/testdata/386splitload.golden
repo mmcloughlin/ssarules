@@ -1,0 +1,4 @@
+(CMP(L|W|B)load [off] {sym} ptr x mem) => (CMP(L|W|B) (MOV(L|W|B)load [off] {sym} ptr mem) x)
+(CMPLconstload [vo] {sym} ptr mem) => (CMPLconst [vo.Val32()] (MOVLload [vo.Off32()] {sym} ptr mem))
+(CMPWconstload [vo] {sym} ptr mem) => (CMPWconst [vo.Val16()] (MOVWload [vo.Off32()] {sym} ptr mem))
+(CMPBconstload [vo] {sym} ptr mem) => (CMPBconst [vo.Val8()] (MOVBload [vo.Off32()] {sym} ptr mem))
