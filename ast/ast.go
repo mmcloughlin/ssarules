@@ -78,7 +78,9 @@ type AuxInt string
 
 type Aux string
 
-type Expr string
+type Expr struct {
+	Expr goast.Expr
+}
 
 func (Expr) node()  {}
 func (Expr) value() {}

@@ -3,6 +3,7 @@ package parse_test
 import (
 	"bufio"
 	"bytes"
+	"go/parser"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -452,7 +453,7 @@ func TestCases(t *testing.T) {
 					Trailing: true,
 				},
 				Conditions: []string{"devirtLESym(v, auxCall, itab, off) !=\n\t\t\t\tnil"},
-				Result:     ast.Expr("devirtLECall(v, devirtLESym(v, auxCall, itab, off))"),
+				Result:     BuildExpr(t, "devirtLECall(v, devirtLESym(v, auxCall, itab, off))"),
 			},
 		},
 
@@ -479,7 +480,7 @@ func TestCases(t *testing.T) {
 					Args: []ast.Value{
 						ast.Variable("x"),
 						ast.Variable("y"),
-						ast.Expr("flagArg(boolval)"),
+						BuildExpr(t, "flagArg(boolval)"),
 					},
 				},
 			},
@@ -520,4 +521,12 @@ func TestCases(t *testing.T) {
 			}
 		})
 	}
+}
+
+func BuildExpr(t *testing.T, x string) ast.Expr {
+	expr, err := parser.ParseExpr(x)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return ast.Expr{Expr: expr}
 }
