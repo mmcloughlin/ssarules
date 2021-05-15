@@ -61,9 +61,5 @@ func run() error {
 	log.Printf("expand alternates: %d rules", len(s.Rules))
 
 	// Output.
-	if err := printer.Print(s); err != nil {
-		return err
-	}
-
-	return nil
+	return printer.Print(s)
 }
