@@ -4,6 +4,8 @@ package printer
 import (
 	"bytes"
 	"fmt"
+	goprinter "go/printer"
+	"go/token"
 	"io"
 	"os"
 
@@ -88,7 +90,12 @@ func (p *printer) value(val ast.Value) {
 	switch v := val.(type) {
 	case *ast.SExpr:
 		p.sexpr(v)
-	case ast.Expr, ast.Variable:
+	case ast.Expr:
+		fset := token.NewFileSet()
+		if err := goprinter.Fprint(p.w, fset, v.Expr); err != nil {
+			p.seterror(err)
+		}
+	case ast.Variable:
 		p.printf("%s", v)
 	default:
 		p.seterror(errutil.UnexpectedType(val))

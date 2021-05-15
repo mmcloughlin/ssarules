@@ -2,6 +2,10 @@
 
 package parser
 
+import (
+    goparser "go/parser"
+)
+
 }
 
 // File
@@ -128,7 +132,11 @@ Aux <- '{' [^}]+ '}' {
 Expr <- Call / Variable / Placeholder
 
 Call <- Ident '(' _ Expr ( _ ',' _ Expr _ )* _ ')' {
-    return ast.Expr(c.text), nil
+    expr, err := goparser.ParseExpr(string(c.text))
+    if err != nil {
+        return nil, err
+    }
+    return ast.Expr{Expr: expr}, nil
 }
 
 Variable <- Ident {
