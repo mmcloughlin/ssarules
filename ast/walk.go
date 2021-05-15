@@ -37,6 +37,12 @@ func Walk(v Visitor, node Node) {
 			Walk(v, part)
 		}
 
+	case Op, OpcodeAlt:
+		// nothing to do
+
+	case Expr, Variable:
+		// nothing to do
+
 	default:
 		panic(errutil.UnexpectedType(node))
 	}
@@ -56,4 +62,15 @@ func (f inspector) Visit(node Node) Visitor {
 		return f
 	}
 	return nil
+}
+
+// Contains reports whether the AST rooted at node contains any node matching
+// predicate.
+func Contains(node Node, predicate func(Node) bool) bool {
+	found := false
+	Inspect(node, func(n Node) bool {
+		found = found || predicate(n)
+		return !found
+	})
+	return found
 }
