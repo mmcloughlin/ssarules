@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	goast "go/ast"
-	goprinter "go/printer"
 	"go/token"
 	"io"
 	"os"
@@ -178,9 +177,41 @@ func (p *printer) oppart(oppart ast.OpPart) {
 }
 
 func (p *printer) goexpr(expr goast.Expr) {
-	fset := token.NewFileSet()
-	if err := goprinter.Fprint(p.w, fset, expr); err != nil {
-		p.seterror(err)
+	switch e := expr.(type) {
+	case *goast.Ident:
+		p.printf("%s", e)
+	case *goast.BasicLit:
+		p.printf("%s", e.Value)
+	case *goast.ParenExpr:
+		p.printf("(")
+		p.goexpr(e.X)
+		p.printf(")")
+	case *goast.UnaryExpr:
+		p.printf("%s", e.Op)
+		p.goexpr(e.X)
+	case *goast.BinaryExpr:
+		p.goexpr(e.X)
+		if e.Op.Precedence() < token.ADD.Precedence() {
+			p.printf(" %s ", e.Op)
+		} else {
+			p.printf("%s", e.Op)
+		}
+		p.goexpr(e.Y)
+	case *goast.CallExpr:
+		p.goexpr(e.Fun)
+		p.printf("(")
+		for i, arg := range e.Args {
+			if i > 0 {
+				p.printf(", ")
+			}
+			p.goexpr(arg)
+		}
+		p.printf(")")
+	case *goast.SelectorExpr:
+		p.goexpr(e.X)
+		p.printf(".%s", e.Sel)
+	default:
+		p.seterror(errutil.UnexpectedType(expr))
 	}
 }
 
