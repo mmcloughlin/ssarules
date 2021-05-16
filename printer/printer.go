@@ -4,7 +4,7 @@ package printer
 import (
 	"bytes"
 	"fmt"
-	goprinter "go/printer"
+	goast "go/ast"
 	"go/token"
 	"io"
 	"os"
@@ -69,9 +69,10 @@ func (p *printer) rule(r *ast.Rule) {
 	// Match
 	p.value(r.Match)
 
-	// Conditions (optional)
-	for _, c := range r.Conditions {
-		p.printf(" && %s", c)
+	// Condition (optional)
+	if r.Condition != nil {
+		p.printf(" && ")
+		p.goexpr(r.Condition)
 	}
 
 	// Deduction symbol
@@ -91,10 +92,7 @@ func (p *printer) value(val ast.Value) {
 	case *ast.SExpr:
 		p.sexpr(v)
 	case ast.Expr:
-		fset := token.NewFileSet()
-		if err := goprinter.Fprint(p.w, fset, v.Expr); err != nil {
-			p.seterror(err)
-		}
+		p.goexpr(v.Expr)
 	case ast.Variable:
 		p.printf("%s", v)
 	default:
@@ -175,6 +173,45 @@ func (p *printer) oppart(oppart ast.OpPart) {
 		p.printf(")")
 	default:
 		p.seterror(errutil.UnexpectedType(oppart))
+	}
+}
+
+func (p *printer) goexpr(expr goast.Expr) {
+	switch e := expr.(type) {
+	case *goast.Ident:
+		p.printf("%s", e)
+	case *goast.BasicLit:
+		p.printf("%s", e.Value)
+	case *goast.ParenExpr:
+		p.printf("(")
+		p.goexpr(e.X)
+		p.printf(")")
+	case *goast.UnaryExpr:
+		p.printf("%s", e.Op)
+		p.goexpr(e.X)
+	case *goast.BinaryExpr:
+		p.goexpr(e.X)
+		if e.Op.Precedence() < token.ADD.Precedence() {
+			p.printf(" %s ", e.Op)
+		} else {
+			p.printf("%s", e.Op)
+		}
+		p.goexpr(e.Y)
+	case *goast.CallExpr:
+		p.goexpr(e.Fun)
+		p.printf("(")
+		for i, arg := range e.Args {
+			if i > 0 {
+				p.printf(", ")
+			}
+			p.goexpr(arg)
+		}
+		p.printf(")")
+	case *goast.SelectorExpr:
+		p.goexpr(e.X)
+		p.printf(".%s", e.Sel)
+	default:
+		p.seterror(errutil.UnexpectedType(expr))
 	}
 }
 
