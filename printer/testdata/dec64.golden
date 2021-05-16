@@ -7,7 +7,7 @@
 (Store {t} dst (Int64Make hi lo) mem) && t.Size() == 8 && !config.BigEndian => (Store {hi.Type} (OffPtr <hi.Type.PtrTo()> [4] dst) hi (Store {lo.Type} dst lo mem))
 (Store {t} dst (Int64Make hi lo) mem) && t.Size() == 8 && config.BigEndian => (Store {lo.Type} (OffPtr <lo.Type.PtrTo()> [4] dst) lo (Store {hi.Type} dst hi mem))
 (Arg [off] {n}) && is64BitInt(v.Type) && !config.BigEndian && v.Type.IsSigned() && !(go116lateCallExpansion && b.Func.pass.name == "decompose builtin") => (Int64Make (Arg <typ.Int32> [off+4] {n}) (Arg <typ.UInt32> [off] {n}))
-(Arg [off] {n}) && is64BitInt(v.Type) && !config.BigEndian && !v.Type.IsSigned() && !(go116lateCallExpansion && b.Func.pass.name == "decompose builtin")  => (Int64Make (Arg <typ.UInt32> [off+4] {n}) (Arg <typ.UInt32> [off] {n}))
+(Arg [off] {n}) && is64BitInt(v.Type) && !config.BigEndian && !v.Type.IsSigned() && !(go116lateCallExpansion && b.Func.pass.name == "decompose builtin") => (Int64Make (Arg <typ.UInt32> [off+4] {n}) (Arg <typ.UInt32> [off] {n}))
 (Arg [off] {n}) && is64BitInt(v.Type) && config.BigEndian && v.Type.IsSigned() && !(go116lateCallExpansion && b.Func.pass.name == "decompose builtin") => (Int64Make (Arg <typ.Int32> [off] {n}) (Arg <typ.UInt32> [off+4] {n}))
 (Arg [off] {n}) && is64BitInt(v.Type) && config.BigEndian && !v.Type.IsSigned() && !(go116lateCallExpansion && b.Func.pass.name == "decompose builtin") => (Int64Make (Arg <typ.UInt32> [off] {n}) (Arg <typ.UInt32> [off+4] {n}))
 (Add64 x y) => (Int64Make (Add32withcarry <typ.Int32> (Int64Hi x) (Int64Hi y) (Select1 <types.TypeFlags> (Add32carry (Int64Lo x) (Int64Lo y)))) (Select0 <typ.UInt32> (Add32carry (Int64Lo x) (Int64Lo y))))

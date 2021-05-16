@@ -3,6 +3,7 @@
 package parser
 
 import (
+    goast "go/ast"
     goparser "go/parser"
 )
 
@@ -21,15 +22,14 @@ File <- rs:( _ Rule _ )* EOF {
 
 // Rule
 
-Rule <- m:Value conds:( __ "&&" __ Condition)* _ "=>" _ block:Block? _ r:Value {
+Rule <- m:Value cond:( __ "&&" __ Condition)? _ "=>" _ block:Block? _ r:Value {
     rule := &ast.Rule{
         Match: m.(ast.Value),
         Result: r.(ast.Value),
     }
 
-    for _, i := range conds.([]interface{}) {
-        cond := i.([]interface{})[3].(string)
-        rule.Conditions = append(rule.Conditions, cond)
+    if cond != nil {
+         rule.Condition = cond.([]interface{})[3].(goast.Expr)
     }
 
     if block != nil {
@@ -132,7 +132,7 @@ Aux <- '{' [^}]+ '}' {
 Expr <- Call / Variable / Placeholder
 
 Call <- Ident '(' _ Expr ( _ ',' _ Expr _ )* _ ')' {
-    expr, err := goparser.ParseExpr(string(c.text))
+    expr, err := goexpr.Parse(string(c.text))
     if err != nil {
         return nil, err
     }
@@ -151,8 +151,17 @@ Ident <- [a-z] [_a-zA-Z0-9]*
 
 // Condition
 
-Condition <- (. !"&&" !"=>")+ {
-    return string(c.text), nil
+Condition <- ( . !"=>" )+ {
+    x := string(c.text)
+    x = strings.ReplaceAll(x, "\n", " ")
+    x = strings.TrimSpace(x)
+
+    cond, err := goexpr.Parse(x)
+    if err != nil {
+        return nil, err
+    }
+
+    return cond, nil
 }
 
 // Block

@@ -4,6 +4,7 @@ package printer
 import (
 	"bytes"
 	"fmt"
+	goast "go/ast"
 	goprinter "go/printer"
 	"go/token"
 	"io"
@@ -69,9 +70,10 @@ func (p *printer) rule(r *ast.Rule) {
 	// Match
 	p.value(r.Match)
 
-	// Conditions (optional)
-	for _, c := range r.Conditions {
-		p.printf(" && %s", c)
+	// Condition (optional)
+	if r.Condition != nil {
+		p.printf(" && ")
+		p.goexpr(r.Condition)
 	}
 
 	// Deduction symbol
@@ -91,10 +93,7 @@ func (p *printer) value(val ast.Value) {
 	case *ast.SExpr:
 		p.sexpr(v)
 	case ast.Expr:
-		fset := token.NewFileSet()
-		if err := goprinter.Fprint(p.w, fset, v.Expr); err != nil {
-			p.seterror(err)
-		}
+		p.goexpr(v.Expr)
 	case ast.Variable:
 		p.printf("%s", v)
 	default:
@@ -175,6 +174,13 @@ func (p *printer) oppart(oppart ast.OpPart) {
 		p.printf(")")
 	default:
 		p.seterror(errutil.UnexpectedType(oppart))
+	}
+}
+
+func (p *printer) goexpr(expr goast.Expr) {
+	fset := token.NewFileSet()
+	if err := goprinter.Fprint(p.w, fset, expr); err != nil {
+		p.seterror(err)
 	}
 }
 

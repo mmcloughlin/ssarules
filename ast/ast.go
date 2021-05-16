@@ -18,10 +18,10 @@ type File struct {
 func (*File) node() {}
 
 type Rule struct {
-	Match      Value
-	Conditions []string
-	Block      string
-	Result     Value
+	Match     Value
+	Condition goast.Expr
+	Block     string
+	Result    Value
 }
 
 func (*Rule) node() {}

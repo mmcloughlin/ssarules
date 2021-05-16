@@ -51,10 +51,10 @@ func expandrule(r *ast.Rule) ([]*ast.Rule, error) {
 	rules := make([]*ast.Rule, 0, n)
 	for i := 0; i < n; i++ {
 		rules = append(rules, &ast.Rule{
-			Match:      ms[idx(i, len(ms))],
-			Conditions: r.Conditions,
-			Block:      r.Block,
-			Result:     rs[idx(i, len(rs))],
+			Match:     ms[idx(i, len(ms))],
+			Condition: r.Condition,
+			Block:     r.Block,
+			Result:    rs[idx(i, len(rs))],
 		})
 	}
 

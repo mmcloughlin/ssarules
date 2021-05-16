@@ -40,7 +40,7 @@ func run() error {
 	// Filter to simple rules.
 	s := &ast.File{}
 	for _, r := range rs {
-		if !(len(r.Conditions) > 0 ||
+		if !(r.Condition == nil ||
 			r.Block != "" ||
 			rules.HasBinding(r) ||
 			rules.HasType(r) ||

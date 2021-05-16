@@ -3,7 +3,7 @@ package parse_test
 import (
 	"bufio"
 	"bytes"
-	"go/parser"
+	goast "go/ast"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -13,6 +13,7 @@ import (
 	"github.com/mmcloughlin/ssarules/ast"
 	"github.com/mmcloughlin/ssarules/internal/test"
 	"github.com/mmcloughlin/ssarules/parse"
+	"github.com/mmcloughlin/ssarules/parse/internal/goexpr"
 )
 
 func TestFiles(t *testing.T) {
@@ -219,7 +220,7 @@ func TestCases(t *testing.T) {
 						},
 					},
 				},
-				Conditions: []string{"c != 0"},
+				Condition: BuildExpr(t, "c != 0"),
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("Const32F"),
 					AuxInt: "-c",
@@ -250,7 +251,7 @@ func TestCases(t *testing.T) {
 						},
 					},
 				},
-				Conditions: []string{"y&0xFF == 0xFF"},
+				Condition: BuildExpr(t, "y&0xFF == 0xFF"),
 				Result: &ast.SExpr{
 					Op: ast.Opcode("Trunc64to8"),
 					Args: []ast.Value{
@@ -289,8 +290,8 @@ func TestCases(t *testing.T) {
 						},
 					},
 				},
-				Conditions: []string{"s >= 56"},
-				Result:     ast.Variable("x"),
+				Condition: BuildExpr(t, "s >= 56"),
+				Result:    ast.Variable("x"),
 			},
 		},
 
@@ -317,8 +318,8 @@ func TestCases(t *testing.T) {
 						},
 					},
 				},
-				Conditions: []string{"x.Uses == 1", "clobber(x)"},
-				Block:      "x.Block",
+				Condition: BuildExpr(t, "x.Uses == 1 && clobber(x)"),
+				Block:     "x.Block",
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("MOVBLSXload"),
 					Type:   "v.Type",
@@ -452,8 +453,8 @@ func TestCases(t *testing.T) {
 					},
 					Trailing: true,
 				},
-				Conditions: []string{"devirtLESym(v, auxCall, itab, off) !=\n\t\t\t\tnil"},
-				Result:     BuildExpr(t, "devirtLECall(v, devirtLESym(v, auxCall, itab, off))"),
+				Condition: BuildExpr(t, "devirtLESym(v, auxCall, itab, off) !=\n\t\t\t\tnil"),
+				Result:    ast.Expr{Expr: BuildExpr(t, "devirtLECall(v, devirtLESym(v, auxCall, itab, off))")},
 			},
 		},
 
@@ -473,14 +474,14 @@ func TestCases(t *testing.T) {
 						ast.Variable("boolval"),
 					},
 				},
-				Conditions: []string{"flagArg(boolval) != nil"},
+				Condition: BuildExpr(t, "flagArg(boolval) != nil"),
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("CSEL"),
 					AuxInt: "boolval.Op",
 					Args: []ast.Value{
 						ast.Variable("x"),
 						ast.Variable("y"),
-						BuildExpr(t, "flagArg(boolval)"),
+						ast.Expr{Expr: BuildExpr(t, "flagArg(boolval)")},
 					},
 				},
 			},
@@ -523,10 +524,10 @@ func TestCases(t *testing.T) {
 	}
 }
 
-func BuildExpr(t *testing.T, x string) ast.Expr {
-	expr, err := parser.ParseExpr(x)
+func BuildExpr(t *testing.T, x string) goast.Expr {
+	expr, err := goexpr.Parse(x)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return ast.Expr{Expr: expr}
+	return expr
 }

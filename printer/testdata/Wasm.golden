@@ -246,9 +246,9 @@
 (I64Add x (I64Const [y])) => (I64AddConst [y] x)
 (I64AddConst [0] x) => x
 (I64Eqz (I64Eqz (I64Eqz x))) => (I64Eqz x)
-((I64Load|I64Load32U|I64Load32S|I64Load16U|I64Load16S|I64Load8U|I64Load8S) [off] (I64AddConst [off2] ptr) mem) && isU32Bit(off+off2) => ((I64Load|I64Load32U|I64Load32S|I64Load16U|I64Load16S|I64Load8U|I64Load8S) [off+off2] ptr mem)
-((I64Store|I64Store32|I64Store16|I64Store8) [off] (I64AddConst [off2] ptr) val mem) && isU32Bit(off+off2) => ((I64Store|I64Store32|I64Store16|I64Store8) [off+off2] ptr val mem)
-(I64AddConst [off] (LoweredAddr [off2] {sym} base)) && isU32Bit(off+int64(off2)) => (LoweredAddr [int32(off)+off2] {sym} base)
+((I64Load|I64Load32U|I64Load32S|I64Load16U|I64Load16S|I64Load8U|I64Load8S) [off] (I64AddConst [off2] ptr) mem) && isU32Bit(off + off2) => ((I64Load|I64Load32U|I64Load32S|I64Load16U|I64Load16S|I64Load8U|I64Load8S) [off+off2] ptr mem)
+((I64Store|I64Store32|I64Store16|I64Store8) [off] (I64AddConst [off2] ptr) val mem) && isU32Bit(off + off2) => ((I64Store|I64Store32|I64Store16|I64Store8) [off+off2] ptr val mem)
+(I64AddConst [off] (LoweredAddr [off2] {sym} base)) && isU32Bit(off + int64(off2)) => (LoweredAddr [int32(off)+off2] {sym} base)
 (I64AddConst [off] x:(SP)) && isU32Bit(off) => (LoweredAddr [int32(off)] x)
 (I64Load [off] (LoweredAddr [off2] {sym} (SB)) _) && symIsRO(sym) && isU32Bit(off+int64(off2)) => (I64Const [int64(read64(sym, off+int64(off2), config.ctxt.Arch.ByteOrder))])
 (I64Load32U [off] (LoweredAddr [off2] {sym} (SB)) _) && symIsRO(sym) && isU32Bit(off+int64(off2)) => (I64Const [int64(read32(sym, off+int64(off2), config.ctxt.Arch.ByteOrder))])
