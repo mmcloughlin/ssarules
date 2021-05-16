@@ -19,7 +19,6 @@ linters:
     - godox
     - gofumpt
     - goimports
-    - golint
     - goprintffuncname
     - gosimple
     - govet
@@ -52,3 +51,20 @@ linters-settings:
 
   gci:
     local-prefixes: github.com/mmcloughlin/ssarules
+
+  importas:
+    no-unaliased: true
+    alias:
+      - pkg: go/(\w+)
+        alias: go$1
+
+issues:
+  # Use exclude list while in development.
+  exclude-use-default: true
+  exclude-rules:
+    - linters:
+        - revive
+      text: "should have comment or be unexported"
+    - linters:
+        - revive
+      text: "comment on exported type"

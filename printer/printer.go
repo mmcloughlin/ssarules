@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	goast "go/ast"
-	"go/token"
+	gotoken "go/token"
 	"io"
 	"os"
 
@@ -191,7 +191,7 @@ func (p *printer) goexpr(expr goast.Expr) {
 		p.goexpr(e.X)
 	case *goast.BinaryExpr:
 		p.goexpr(e.X)
-		if e.Op.Precedence() < token.ADD.Precedence() {
+		if e.Op.Precedence() < gotoken.ADD.Precedence() {
 			p.printf(" %s ", e.Op)
 		} else {
 			p.printf("%s", e.Op)

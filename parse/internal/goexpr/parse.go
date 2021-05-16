@@ -1,15 +1,15 @@
 package goexpr
 
 import (
-	"go/ast"
-	"go/parser"
-	"go/token"
+	goast "go/ast"
+	goparser "go/parser"
+	gotoken "go/token"
 
 	"github.com/mmcloughlin/ssarules/internal/errutil"
 )
 
-func Parse(x string) (ast.Expr, error) {
-	expr, err := parser.ParseExpr(x)
+func Parse(x string) (goast.Expr, error) {
+	expr, err := goparser.ParseExpr(x)
 	if err != nil {
 		return nil, err
 	}
@@ -21,29 +21,29 @@ func Parse(x string) (ast.Expr, error) {
 	return expr, nil
 }
 
-func clearpos(expr ast.Expr) error {
+func clearpos(expr goast.Expr) error {
 	var err error
-	ast.Inspect(expr, func(node ast.Node) bool {
+	goast.Inspect(expr, func(node goast.Node) bool {
 		if node == nil {
 			return true
 		}
 		switch n := node.(type) {
-		case *ast.BasicLit:
-			n.ValuePos = token.NoPos
-		case *ast.ParenExpr:
-			n.Lparen = token.NoPos
-			n.Rparen = token.NoPos
-		case *ast.UnaryExpr:
-			n.OpPos = token.NoPos
-		case *ast.CallExpr:
-			n.Lparen = token.NoPos
-			n.Ellipsis = token.NoPos
-			n.Rparen = token.NoPos
-		case *ast.BinaryExpr:
-			n.OpPos = token.NoPos
-		case *ast.Ident:
-			n.NamePos = token.NoPos
-		case *ast.SelectorExpr:
+		case *goast.BasicLit:
+			n.ValuePos = gotoken.NoPos
+		case *goast.ParenExpr:
+			n.Lparen = gotoken.NoPos
+			n.Rparen = gotoken.NoPos
+		case *goast.UnaryExpr:
+			n.OpPos = gotoken.NoPos
+		case *goast.CallExpr:
+			n.Lparen = gotoken.NoPos
+			n.Ellipsis = gotoken.NoPos
+			n.Rparen = gotoken.NoPos
+		case *goast.BinaryExpr:
+			n.OpPos = gotoken.NoPos
+		case *goast.Ident:
+			n.NamePos = gotoken.NoPos
+		case *goast.SelectorExpr:
 			// pass
 		default:
 			err = errutil.UnexpectedType(node)
