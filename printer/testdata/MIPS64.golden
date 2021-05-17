@@ -193,7 +193,7 @@
 (Zero [12] {t} ptr mem) && t.Alignment()%4 == 0 => (MOVWstore [8] ptr (MOVVconst [0]) (MOVWstore [4] ptr (MOVVconst [0]) (MOVWstore [0] ptr (MOVVconst [0]) mem)))
 (Zero [16] {t} ptr mem) && t.Alignment()%8 == 0 => (MOVVstore [8] ptr (MOVVconst [0]) (MOVVstore [0] ptr (MOVVconst [0]) mem))
 (Zero [24] {t} ptr mem) && t.Alignment()%8 == 0 => (MOVVstore [16] ptr (MOVVconst [0]) (MOVVstore [8] ptr (MOVVconst [0]) (MOVVstore [0] ptr (MOVVconst [0]) mem)))
-(Zero [s] {t} ptr mem) && s%8 == 0 && s > 24 && s <= 8*128 && t.Alignment()%8 == 0 && !config.noDuffDevice => (DUFFZERO [8 * (128 - s/8)] ptr mem)
+(Zero [s] {t} ptr mem) && s%8 == 0 && s > 24 && s <= 8*128 && t.Alignment()%8 == 0 && !config.noDuffDevice => (DUFFZERO [8*(128-s/8)] ptr mem)
 (Zero [s] {t} ptr mem) && (s > 8*128 || config.noDuffDevice) || t.Alignment()%8 != 0 => (LoweredZero [t.Alignment()] ptr (ADDVconst <ptr.Type> [s-moveSize(t.Alignment(), config)] ptr) mem)
 (Move [0] _ _ mem) => mem
 (Move [1] dst src mem) => (MOVBstore dst (MOVBload src mem) mem)
@@ -210,7 +210,7 @@
 (Move [12] {t} dst src mem) && t.Alignment()%4 == 0 => (MOVWstore [8] dst (MOVWload [8] src mem) (MOVWstore [4] dst (MOVWload [4] src mem) (MOVWstore dst (MOVWload src mem) mem)))
 (Move [16] {t} dst src mem) && t.Alignment()%8 == 0 => (MOVVstore [8] dst (MOVVload [8] src mem) (MOVVstore dst (MOVVload src mem) mem))
 (Move [24] {t} dst src mem) && t.Alignment()%8 == 0 => (MOVVstore [16] dst (MOVVload [16] src mem) (MOVVstore [8] dst (MOVVload [8] src mem) (MOVVstore dst (MOVVload src mem) mem)))
-(Move [s] {t} dst src mem) && s%8 == 0 && s >= 24 && s <= 8*128 && t.Alignment()%8 == 0 && !config.noDuffDevice && logLargeCopy(v, s) => (DUFFCOPY [16 * (128 - s/8)] dst src mem)
+(Move [s] {t} dst src mem) && s%8 == 0 && s >= 24 && s <= 8*128 && t.Alignment()%8 == 0 && !config.noDuffDevice && logLargeCopy(v, s) => (DUFFCOPY [16*(128-s/8)] dst src mem)
 (Move [s] {t} dst src mem) && s > 24 && logLargeCopy(v, s) || t.Alignment()%8 != 0 => (LoweredMove [t.Alignment()] dst src (ADDVconst <src.Type> [s-moveSize(t.Alignment(), config)] src) mem)
 (StaticCall ...) => (CALLstatic ...)
 (ClosureCall ...) => (CALLclosure ...)

@@ -65,7 +65,7 @@ func expandvalue(v ast.Value) ([]ast.Value, error) {
 	switch val := v.(type) {
 	case *ast.SExpr:
 		return expandsexpr(val)
-	case ast.Expr, ast.Variable:
+	case *ast.Expr, ast.Variable:
 		return []ast.Value{val}, nil
 	default:
 		return nil, errutil.UnexpectedType(v)

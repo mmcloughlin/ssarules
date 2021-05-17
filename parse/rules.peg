@@ -7,6 +7,10 @@ import (
     goparser "go/parser"
 )
 
+type (
+    auxint ast.Expr
+)
+
 }
 
 // File
@@ -29,7 +33,7 @@ Rule <- m:Value cond:( __ "&&" __ Condition)? _ "=>" _ block:Block? _ r:Value {
     }
 
     if cond != nil {
-         rule.Condition = cond.([]interface{})[3].(goast.Expr)
+         rule.Condition = cond.([]interface{})[3].(*ast.Expr)
     }
 
     if block != nil {
@@ -54,8 +58,8 @@ SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis
         switch operand := is.([]interface{})[1].(type) {
         case ast.Type:
             s.Type = operand
-        case ast.AuxInt:
-            s.AuxInt = operand
+        case *auxint:
+            s.AuxInt = (*ast.Expr)(operand)
         case ast.Aux:
             s.Aux = operand
         case ast.Value:
@@ -119,7 +123,12 @@ Type <- '<' [^>]+ '>' {
 
 AuxInt <- '[' [^\]]+ ']' {
     n := len(c.text)
-    return ast.AuxInt(c.text[1:n-1]), nil
+    x := string(c.text[1:n-1])
+    expr, err := goexpr.Parse(x)
+    if err != nil {
+        return nil, fmt.Errorf("parse %q: %w", x, err)
+    }
+    return &auxint{Expr: expr}, nil
 }
 
 Aux <- '{' [^}]+ '}' {
@@ -136,7 +145,7 @@ Call <- Ident '(' _ Expr ( _ ',' _ Expr _ )* _ ')' {
     if err != nil {
         return nil, err
     }
-    return ast.Expr{Expr: expr}, nil
+    return &ast.Expr{Expr: expr}, nil
 }
 
 Variable <- Ident {
@@ -161,7 +170,7 @@ Condition <- ( . !"=>" )+ {
         return nil, err
     }
 
-    return cond, nil
+    return &ast.Expr{Expr: cond}, nil
 }
 
 // Block

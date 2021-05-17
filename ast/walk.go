@@ -40,7 +40,7 @@ func Walk(v Visitor, node Node) {
 	case Op, OpcodeAlt:
 		// nothing to do
 
-	case Expr, Variable:
+	case *Expr, Variable:
 		// nothing to do
 
 	default:

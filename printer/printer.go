@@ -72,7 +72,7 @@ func (p *printer) rule(r *ast.Rule) {
 	// Condition (optional)
 	if r.Condition != nil {
 		p.printf(" && ")
-		p.goexpr(r.Condition)
+		p.goexpr(r.Condition.Expr)
 	}
 
 	// Deduction symbol
@@ -91,7 +91,7 @@ func (p *printer) value(val ast.Value) {
 	switch v := val.(type) {
 	case *ast.SExpr:
 		p.sexpr(v)
-	case ast.Expr:
+	case *ast.Expr:
 		p.goexpr(v.Expr)
 	case ast.Variable:
 		p.printf("%s", v)
@@ -118,8 +118,10 @@ func (p *printer) sexpr(s *ast.SExpr) {
 	}
 
 	// AuxInt (optional)
-	if s.AuxInt != "" {
-		p.printf(" [%s]", s.AuxInt)
+	if s.AuxInt != nil {
+		p.printf(" [")
+		p.goexpr(s.AuxInt.Expr)
+		p.printf("]")
 	}
 
 	// Aux (optional)

@@ -19,7 +19,7 @@ func (*File) node() {}
 
 type Rule struct {
 	Match     Value
-	Condition goast.Expr
+	Condition *Expr
 	Block     string
 	Result    Value
 }
@@ -35,7 +35,7 @@ type SExpr struct {
 	Binding  Variable
 	Op       Op
 	Type     Type
-	AuxInt   AuxInt
+	AuxInt   *Expr
 	Aux      Aux
 	Args     []Value
 	Ellipsis bool
@@ -74,16 +74,14 @@ func (OpcodeAlt) oppart() {}
 
 type Type string
 
-type AuxInt string
-
 type Aux string
 
 type Expr struct {
 	Expr goast.Expr
 }
 
-func (Expr) node()  {}
-func (Expr) value() {}
+func (*Expr) node()  {}
+func (*Expr) value() {}
 
 type Variable string
 

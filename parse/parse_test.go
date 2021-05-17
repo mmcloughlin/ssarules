@@ -3,7 +3,6 @@ package parse_test
 import (
 	"bufio"
 	"bytes"
-	goast "go/ast"
 	"io/ioutil"
 	"strings"
 	"testing"
@@ -72,13 +71,13 @@ func TestCases(t *testing.T) {
 					Args: []ast.Value{
 						&ast.SExpr{
 							Op:     ast.Opcode("Const32"),
-							AuxInt: "0",
+							AuxInt: BuildExpr(t, "0"),
 						},
 					},
 				},
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("Const32"),
-					AuxInt: "0",
+					AuxInt: BuildExpr(t, "0"),
 				},
 			},
 		},
@@ -98,14 +97,14 @@ func TestCases(t *testing.T) {
 						ast.Variable("x"),
 						&ast.SExpr{
 							Op:     ast.Opcode("Const64"),
-							AuxInt: "c",
+							AuxInt: BuildExpr(t, "c"),
 						},
 					},
 				},
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("OffPtr"),
 					Type:   "t",
-					AuxInt: "c",
+					AuxInt: BuildExpr(t, "c"),
 					Args: []ast.Value{
 						ast.Variable("x"),
 					},
@@ -138,7 +137,7 @@ func TestCases(t *testing.T) {
 				},
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("ConstBool"),
-					AuxInt: "x == y",
+					AuxInt: BuildExpr(t, "x == y"),
 				},
 			},
 		},
@@ -165,7 +164,7 @@ func TestCases(t *testing.T) {
 								ast.OpcodeAlt{"32", "64"},
 								ast.Opcode("F"),
 							},
-							AuxInt: "1",
+							AuxInt: BuildExpr(t, "1"),
 						},
 					},
 				},
@@ -216,14 +215,14 @@ func TestCases(t *testing.T) {
 					Args: []ast.Value{
 						&ast.SExpr{
 							Op:     ast.Opcode("Const32F"),
-							AuxInt: "c",
+							AuxInt: BuildExpr(t, "c"),
 						},
 					},
 				},
 				Condition: BuildExpr(t, "c != 0"),
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("Const32F"),
-					AuxInt: "-c",
+					AuxInt: BuildExpr(t, "-c"),
 				},
 			},
 		},
@@ -244,7 +243,7 @@ func TestCases(t *testing.T) {
 							Args: []ast.Value{
 								&ast.SExpr{
 									Op:     ast.Opcode("Const64"),
-									AuxInt: "y",
+									AuxInt: BuildExpr(t, "y"),
 								},
 								ast.Variable("x"),
 							},
@@ -282,7 +281,7 @@ func TestCases(t *testing.T) {
 										ast.Variable("_"),
 										&ast.SExpr{
 											Op:     ast.Opcode("Const64"),
-											AuxInt: "s",
+											AuxInt: BuildExpr(t, "s"),
 										},
 									},
 								},
@@ -309,7 +308,7 @@ func TestCases(t *testing.T) {
 						&ast.SExpr{
 							Binding: "x",
 							Op:      ast.Opcode("MOVBload"),
-							AuxInt:  "off",
+							AuxInt:  BuildExpr(t, "off"),
 							Aux:     "sym",
 							Args: []ast.Value{
 								ast.Variable("ptr"),
@@ -323,7 +322,7 @@ func TestCases(t *testing.T) {
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("MOVBLSXload"),
 					Type:   "v.Type",
-					AuxInt: "off",
+					AuxInt: BuildExpr(t, "off"),
 					Aux:    "sym",
 					Args: []ast.Value{
 						ast.Variable("ptr"),
@@ -362,7 +361,7 @@ func TestCases(t *testing.T) {
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
 					Op:     ast.Opcode("SelectN"),
-					AuxInt: "2",
+					AuxInt: BuildExpr(t, "2"),
 					Args: []ast.Value{
 						&ast.SExpr{
 							Op:       ast.Opcode("MakeResult"),
@@ -415,7 +414,7 @@ func TestCases(t *testing.T) {
 			Expect: &ast.Rule{
 				Match: &ast.SExpr{
 					Op:     ast.Opcode("InterLECall"),
-					AuxInt: "argsize",
+					AuxInt: BuildExpr(t, "argsize"),
 					Aux:    "auxCall",
 					Args: []ast.Value{
 						&ast.SExpr{
@@ -423,7 +422,7 @@ func TestCases(t *testing.T) {
 							Args: []ast.Value{
 								&ast.SExpr{
 									Op:     ast.Opcode("OffPtr"),
-									AuxInt: "off",
+									AuxInt: BuildExpr(t, "off"),
 									Args: []ast.Value{
 										&ast.SExpr{
 											Op: ast.Opcode("ITab"),
@@ -454,7 +453,7 @@ func TestCases(t *testing.T) {
 					Trailing: true,
 				},
 				Condition: BuildExpr(t, "devirtLESym(v, auxCall, itab, off) !=\n\t\t\t\tnil"),
-				Result:    ast.Expr{Expr: BuildExpr(t, "devirtLECall(v, devirtLESym(v, auxCall, itab, off))")},
+				Result:    BuildExpr(t, "devirtLECall(v, devirtLESym(v, auxCall, itab, off))"),
 			},
 		},
 
@@ -477,11 +476,11 @@ func TestCases(t *testing.T) {
 				Condition: BuildExpr(t, "flagArg(boolval) != nil"),
 				Result: &ast.SExpr{
 					Op:     ast.Opcode("CSEL"),
-					AuxInt: "boolval.Op",
+					AuxInt: BuildExpr(t, "boolval.Op"),
 					Args: []ast.Value{
 						ast.Variable("x"),
 						ast.Variable("y"),
-						ast.Expr{Expr: BuildExpr(t, "flagArg(boolval)")},
+						BuildExpr(t, "flagArg(boolval)"),
 					},
 				},
 			},
@@ -524,10 +523,10 @@ func TestCases(t *testing.T) {
 	}
 }
 
-func BuildExpr(t *testing.T, x string) goast.Expr {
+func BuildExpr(t *testing.T, x string) *ast.Expr {
 	expr, err := goexpr.Parse(x)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return expr
+	return &ast.Expr{Expr: expr}
 }
