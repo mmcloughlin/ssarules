@@ -8,7 +8,8 @@ import (
 )
 
 type (
-    auxint ast.Expr
+    valueauxint ast.Expr
+    valueaux ast.Expr
 )
 
 }
@@ -58,10 +59,10 @@ SExpr <- binding:( Variable ':' )? '(' _ op:Op operands:( __ Operand )* ellipsis
         switch operand := is.([]interface{})[1].(type) {
         case ast.Type:
             s.Type = operand
-        case *auxint:
+        case *valueauxint:
             s.AuxInt = (*ast.Expr)(operand)
-        case ast.Aux:
-            s.Aux = operand
+        case *valueaux:
+            s.Aux = (*ast.Expr)(operand)
         case ast.Value:
             s.Args = append(s.Args, operand)
         default:
@@ -126,14 +127,19 @@ AuxInt <- '[' [^\]]+ ']' {
     x := string(c.text[1:n-1])
     expr, err := goexpr.Parse(x)
     if err != nil {
-        return nil, fmt.Errorf("parse %q: %w", x, err)
+        return nil, err
     }
-    return &auxint{Expr: expr}, nil
+    return &valueauxint{Expr: expr}, nil
 }
 
 Aux <- '{' [^}]+ '}' {
     n := len(c.text)
-    return ast.Aux(c.text[1:n-1]), nil
+    x := string(c.text[1:n-1])
+    expr, err := goexpr.Parse(x)
+    if err != nil {
+        return nil, err
+    }
+    return &valueaux{Expr: expr}, nil
 }
 
 // Expr

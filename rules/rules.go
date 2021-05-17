@@ -19,7 +19,7 @@ func HasType(r *ast.Rule) bool {
 func HasAux(r *ast.Rule) bool {
 	return ast.Contains(r, func(n ast.Node) bool {
 		s, ok := n.(*ast.SExpr)
-		return ok && s.Aux != ""
+		return ok && s.Aux != nil
 	})
 }
 

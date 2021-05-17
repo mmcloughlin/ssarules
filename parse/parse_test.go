@@ -125,12 +125,12 @@ func TestCases(t *testing.T) {
 					Args: []ast.Value{
 						&ast.SExpr{
 							Op:   ast.Opcode("Addr"),
-							Aux:  "x",
+							Aux:  BuildExpr(t, "x"),
 							Args: []ast.Value{ast.Placeholder},
 						},
 						&ast.SExpr{
 							Op:   ast.Opcode("Addr"),
-							Aux:  "y",
+							Aux:  BuildExpr(t, "y"),
 							Args: []ast.Value{ast.Placeholder},
 						},
 					},
@@ -309,7 +309,7 @@ func TestCases(t *testing.T) {
 							Binding: "x",
 							Op:      ast.Opcode("MOVBload"),
 							AuxInt:  BuildExpr(t, "off"),
-							Aux:     "sym",
+							Aux:     BuildExpr(t, "sym"),
 							Args: []ast.Value{
 								ast.Variable("ptr"),
 								ast.Variable("mem"),
@@ -323,7 +323,7 @@ func TestCases(t *testing.T) {
 					Op:     ast.Opcode("MOVBLSXload"),
 					Type:   "v.Type",
 					AuxInt: BuildExpr(t, "off"),
-					Aux:    "sym",
+					Aux:    BuildExpr(t, "sym"),
 					Args: []ast.Value{
 						ast.Variable("ptr"),
 						ast.Variable("mem"),
@@ -415,7 +415,7 @@ func TestCases(t *testing.T) {
 				Match: &ast.SExpr{
 					Op:     ast.Opcode("InterLECall"),
 					AuxInt: BuildExpr(t, "argsize"),
-					Aux:    "auxCall",
+					Aux:    BuildExpr(t, "auxCall"),
 					Args: []ast.Value{
 						&ast.SExpr{
 							Op: ast.Opcode("Load"),
@@ -432,7 +432,7 @@ func TestCases(t *testing.T) {
 													Args: []ast.Value{
 														&ast.SExpr{
 															Op:  ast.Opcode("Addr"),
-															Aux: "itab",
+															Aux: BuildExpr(t, "itab"),
 															Args: []ast.Value{
 																&ast.SExpr{
 																	Op: ast.Opcode("SB"),

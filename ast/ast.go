@@ -36,7 +36,7 @@ type SExpr struct {
 	Op       Op
 	Type     Type
 	AuxInt   *Expr
-	Aux      Aux
+	Aux      *Expr
 	Args     []Value
 	Ellipsis bool
 	Trailing bool
@@ -73,8 +73,6 @@ func (OpcodeAlt) node()   {}
 func (OpcodeAlt) oppart() {}
 
 type Type string
-
-type Aux string
 
 type Expr struct {
 	Expr goast.Expr

@@ -43,6 +43,8 @@ func clearpos(expr goast.Expr) error {
 			n.OpPos = gotoken.NoPos
 		case *goast.Ident:
 			n.NamePos = gotoken.NoPos
+		case *goast.StarExpr:
+			n.Star = gotoken.NoPos
 		case *goast.SelectorExpr:
 			// pass
 		default:

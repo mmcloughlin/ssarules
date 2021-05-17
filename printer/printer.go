@@ -125,8 +125,10 @@ func (p *printer) sexpr(s *ast.SExpr) {
 	}
 
 	// Aux (optional)
-	if s.Aux != "" {
-		p.printf(" {%s}", s.Aux)
+	if s.Aux != nil {
+		p.printf(" {")
+		p.goexpr(s.Aux.Expr)
+		p.printf("}")
 	}
 
 	// Args
@@ -209,6 +211,9 @@ func (p *printer) goexpr(expr goast.Expr) {
 			p.goexpr(arg)
 		}
 		p.printf(")")
+	case *goast.StarExpr:
+		p.printf("*")
+		p.goexpr(e.X)
 	case *goast.SelectorExpr:
 		p.goexpr(e.X)
 		p.printf(".%s", e.Sel)
