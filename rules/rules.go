@@ -23,6 +23,13 @@ func HasAux(r *ast.Rule) bool {
 	})
 }
 
+func HasAuxInt(r *ast.Rule) bool {
+	return ast.Contains(r, func(n ast.Node) bool {
+		s, ok := n.(*ast.SExpr)
+		return ok && s.AuxInt != nil
+	})
+}
+
 func HasEllipsis(r *ast.Rule) bool {
 	return ast.Contains(r, func(n ast.Node) bool {
 		s, ok := n.(*ast.SExpr)

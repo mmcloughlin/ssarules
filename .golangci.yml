@@ -49,6 +49,9 @@ linters-settings:
       - github.com/mmcloughlin/ssarules
       - github.com/google
 
+  exhaustive:
+    default-signifies-exhaustive: true
+
   gci:
     local-prefixes: github.com/mmcloughlin/ssarules
 

@@ -5,6 +5,11 @@ import (
 	"fmt"
 )
 
+// NotSupported is used for errors related to unsupported functionality.
+func NotSupported(format string, args ...interface{}) error {
+	return fmt.Errorf("not supported: "+format, args...)
+}
+
 // AssertionFailure is used for an error resulting from the failure of an
 // expected invariant.
 func AssertionFailure(format string, args ...interface{}) error {
