@@ -6,9 +6,11 @@ import (
 	"fmt"
 	gotypes "go/types"
 	"io"
+	"strings"
 
 	"github.com/mmcloughlin/ssarules/ast"
 	"github.com/mmcloughlin/ssarules/internal/errutil"
+	"github.com/mmcloughlin/ssarules/printer"
 )
 
 func Generate(r *ast.Rule) ([]byte, error) {
@@ -35,6 +37,13 @@ func (g *generator) generate(r *ast.Rule) error {
 	// Header
 	g.printf("(set-info :smt-lib-version 2.6)\n")
 	g.printf("(set-logic QF_BV)\n")
+
+	// Include rule in comment
+	rule, err := printer.Bytes(r)
+	if err != nil {
+		return err
+	}
+	g.printf("; %s\n", strings.ReplaceAll(string(rule), "\n", "\n; "))
 
 	// Match
 	match, err := g.eval(r.Match, nil)
@@ -116,6 +125,8 @@ func typesort(t gotypes.Type) (string, error) {
 	}
 
 	switch b.Kind() {
+	case gotypes.Bool:
+		return "Bool", nil
 	case gotypes.Int8, gotypes.Uint8:
 		return "(_ BitVec 8)", nil
 	case gotypes.Int16, gotypes.Uint16:
@@ -125,7 +136,6 @@ func typesort(t gotypes.Type) (string, error) {
 	case gotypes.Int64, gotypes.Uint64:
 		return "(_ BitVec 64)", nil
 
-	// 	Bool
 	// 	Int
 	// 	Uint
 	// 	Uintptr
